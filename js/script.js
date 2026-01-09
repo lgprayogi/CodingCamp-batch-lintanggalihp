@@ -17,7 +17,7 @@ function addTodo() {
     });
 
     todos.push(newTodo);
-    renderTodos();
+    renderTodos(filteredTodos());
 
     todoInput.value = '';
     todoDate.value = '';
@@ -34,44 +34,57 @@ function renderTodos(list) {
         li.textContent = "No todos yet";
         todoList.appendChild(li);
         return;
-}
+    }
 
-data.forEach((todo, index) => {
-    const li = document.createElement("li");
-    li.className = "border p-2 rounded";
+    data.forEach((todo, index) => {
+        const li = document.createElement("li");
+        li.className = "border p-2 rounded flex items-center justify-between";
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = todo.completed;
-    checkbox.className = "mr-2";
+        const left = document.createElement("div");
+        left.className = "flex items-center";
 
-    checkbox.addEventListener("change", () => {
-        todo.completed = checkbox.checked;
-        renderTodos(filteredTodos());
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = todo.completed;
+        checkbox.className = "mr-2";
+
+        checkbox.addEventListener("change", () => {
+            todo.completed = checkbox.checked;
+            renderTodos(filteredTodos());
+        });
+
+        const p = document.createElement("p");
+        p.className = "text-2xl inline";
+
+        const taskSpan = document.createElement("span");
+        taskSpan.textContent = todo.task;
+        taskSpan.className = todo.completed
+            ? "line-through text-gray-400"
+            : "";
+
+        const dateSpan = document.createElement("span");
+        dateSpan.textContent = ` (${todo.date})`;
+        dateSpan.className = "text-sm text-gray-500 ml-2";
+
+        p.appendChild(taskSpan);
+        p.appendChild(dateSpan);
+
+        left.appendChild(checkbox);
+        left.appendChild(p);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "X";
+        deleteBtn.className = "ml-4 text-red-500 hover:text-red-700 font-bold";
+
+        deleteBtn.addEventListener("click", () => {
+            todos.splice(index, 1);
+            renderTodos(filteredTodos());
+        });
+
+        li.appendChild(left);
+        li.appendChild(deleteBtn);
+        todoList.appendChild(li);
     });
-
-    const p = document.createElement("p");
-    p.className = "text-2xl inline";
-
-    const taskSpan = document.createElement("span");
-    taskSpan.textContent = todo.task;
-    taskSpan.className = todo.completed
-    ? "line-through text-gray-400"
-    : "";
-
-    const dateSpan = document.createElement("span");
-    dateSpan.textContent = ` (${todo.date})`;
-    dateSpan.className = "text-sm text-gray-500";
-
-    p.appendChild(taskSpan);
-    p.appendChild(dateSpan);
-
-    li.appendChild(checkbox);
-    li.appendChild(p);
-    li.appendChild(document.createElement("hr"));
-
-    todoList.appendChild(li);
-});
 }
 
 function filteredTodos() {
@@ -87,15 +100,25 @@ function filteredTodos() {
 }
 
 const filterSelect = document.getElementById("filterStatus");
-filterSelect.addEventListener("change", (e) => {
-    currentFilter= e.target.value;
-    renderTodos(filteredTodos());
-});
+if (filterSelect) {
+    filterSelect.addEventListener("change", (e) => {
+        currentFilter = e.target.value;
+        renderTodos(filteredTodos());
+    });
+}
 
 const removeAllTodo = document.getElementById("removeAllTodo");
-removeAllTodo.addEventListener('click', () => {
-    if (confirm('Delete all tasks?')) {
-        todos = [];
-        renderTodos(filteredTodos());
-    }
-})
+if (removeAllTodo) {
+    removeAllTodo.addEventListener('click', () => {
+        if (confirm('Delete all tasks?')) {
+            todos = [];
+            renderTodos(filteredTodos());
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => renderTodos(filteredTodos()));
+} else {
+    renderTodos(filteredTodos());
+}
